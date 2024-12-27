@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<div class="input-group"></div>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -110,13 +110,35 @@
                    autocomplete="off" spellcheck="false">
             <button onclick="generateQR()">Generate QR Code</button>
         </div>
-        <div id="qrcode"></div>
+
+        <div class="color-pickers">
+            <div class="color-picker">
+                <label for="colorDark">Dark Color:</label>
+                <input type="color" id="colorDark" value="#000000" onchange="updateColors()">
+            </div>
+            <div class="color-picker">
+                <label for="colorLight">Light Color:</label>
+                <input type="color" id="colorLight" value="#ffffff" onchange="updateColors()">
+            </div>
+        </div>
+
+        <div id="qrcode">
+            <p style="text-align: center; color: #888;">Please enter a text or URL to generate QR code.</p>
+        </div>
     </div>
 
     <script>
-        let colorDark = "#1a56db";
-        let colorLight = "#f8fafc";
+        let colorDark = "#000000";
+        let colorLight = "#ffffff";
+        console.log("Hi")
 
+        function updateColors() {
+            console.log('updateColors');
+            colorDark = document.getElementById('colorDark').value;
+            colorLight = document.getElementById('colorLight').value;
+            console.log(colorDark, colorLight);
+            generateQR();
+        }
 
 
         function generateQR() {
@@ -124,17 +146,16 @@
             const qrcodeContainer = document.getElementById('qrcode');
             
             // Clear the previous QR code
-            qrcodeContainer.innerHTML = '';
-            
             if (text) {
+                qrcodeContainer.innerHTML = ''; 
                 qrcodeContainer.classList.add('generating');
                 // Create new QR code
                 new QRCode(qrcodeContainer, {
                     text: text,
                     width: 200,
                     height: 200,
-                    colorDark: "#1a56db",  // Blue color for QR code
-                    colorLight: "#f8fafc",
+                    colorDark: colorDark,
+                    colorLight: colorLight,
                     correctLevel: QRCode.CorrectLevel.H
                 });
                 
@@ -142,6 +163,8 @@
                 setTimeout(() => {
                     qrcodeContainer.classList.remove('generating');
                 }, 500);
+            } else {
+                qrcodeContainer.innerHTML = '<p style="text-align: center; color: #888;">Please enter a text or URL to generate QR code.</p>';
             }
         }
 

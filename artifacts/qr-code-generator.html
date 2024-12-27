@@ -113,14 +113,14 @@
 
         <div class="color-pickers" style="margin-bottom: 1.5rem;">
             <div class="color-picker" style="display: flex; align-items: center; margin-bottom: 0.5rem;">
-            <label for="colorDark" style="flex: 1;">Dark Color:</label>
+            <label for="colorDark" style="flex: 1;"><strong>Dark Color:</strong></label>
             <input type="color" id="colorDark" value="#000000" onchange="updateColors()" 
-                style="width: 60px; height: 30px; padding: 0; border: 2px solid #e2e8f0; border-radius: 4px; margin-bottom: 0;">
+                style="width: 80px; height: 30px; padding: 0; border: 2px solid #e2e8f0; border-radius: 4px; margin-bottom: 0;">
             </div>
             <div class="color-picker" style="display: flex; align-items: center;">
-            <label for="colorLight" style="flex: 1;">Light Color:</label>
+            <label for="colorLight" style="flex: 1;"><strong>Light Color:</strong></label>
             <input type="color" id="colorLight" value="#ffffff" onchange="updateColors()"
-                style="width: 60px; height: 30px; padding: 0; border: 2px solid #e2e8f0; border-radius: 4px; margin-bottom: 0;">
+                style="width: 80px; height: 30px; padding: 0; border: 2px solid #e2e8f0; border-radius: 4px; margin-bottom: 0;">
             </div>
         </div>
 
@@ -132,7 +132,6 @@
     <script>
         let colorDark = "#000000";
         let colorLight = "#ffffff";
-        console.log("Hi")
 
         function updateColors() {
             console.log('updateColors');

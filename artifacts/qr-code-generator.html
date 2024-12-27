@@ -127,6 +127,10 @@
         <div id="qrcode">
             <p style="text-align: center; color: #888;">Please enter a text or URL to generate QR code.</p>
         </div>
+
+        <div id="action-buttons" style="display: flex; gap: 10px; margin-top: 1rem;">
+
+        </div>
     </div>
 
     <script>
@@ -145,6 +149,7 @@
         function generateQR() {
             const text = document.getElementById('text').value;
             const qrcodeContainer = document.getElementById('qrcode');
+            const buttonGroup = document.getElementById('action-buttons');
             
             // Clear the previous QR code
             if (text) {
@@ -163,9 +168,14 @@
                 // Remove loading animation once QR code is generated
                 setTimeout(() => {
                     qrcodeContainer.classList.remove('generating');
-                }, 500);
+                }, 0);
+                buttonGroup.innerHTML = `
+                    <button onclick="shareQRCode()" style="flex: 1">Share</button>
+                    <button onclick="downloadQRCode()" style="flex: 1">Download</button>
+                `;
             } else {
                 qrcodeContainer.innerHTML = '<p style="text-align: center; color: #888;">Please enter a text or URL to generate QR code.</p>';
+                buttonGroup.innerHTML = '';
             }
         }
 
@@ -175,6 +185,36 @@
                 generateQR();
             }
         });
+
+        // Add share functionality
+        async function shareQRCode() {
+            const qrCanvas = document.querySelector('#qrcode canvas');
+            if (!qrCanvas) return;
+
+            const blob = await new Promise(resolve => qrCanvas.toBlob(resolve));
+            const file = new File([blob], 'qrcode.png', { type: 'image/png' });
+            
+            if (navigator.share) {
+                await navigator.share({
+                    files: [file],
+                    title: 'QR Code',
+                    text: 'Here\'s your QR code'
+                });
+            } else {
+                alert('Share not supported');
+            }
+        }
+
+        // Add download functionality
+        function downloadQRCode() {
+            const qrCanvas = document.querySelector('#qrcode canvas');
+            if (!qrCanvas) return;
+
+            const link = document.createElement('a');
+            link.download = 'qrcode.png';
+            link.href = qrCanvas.toDataURL('image/png');
+            link.click();
+        }
     </script>
 </body>
 </html>

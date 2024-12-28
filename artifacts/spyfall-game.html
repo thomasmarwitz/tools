@@ -398,7 +398,8 @@
             }
 
             // Store the game time
-            gameTime = document.getElementById('duration').value || '4:00';
+            const durationValue = document.getElementById('duration').value.trim();
+            gameTime = durationValue.match(/^\d{1,2}:\d{2}$/) ? durationValue : '4:00';
             document.getElementById('timer').textContent = gameTime;
 
             // Set up the game

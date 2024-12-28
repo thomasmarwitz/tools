@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎲</text></svg>">
+    <title>🎲 Dice Roller</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #f0f2f5;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            align-items: center;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        label {
+            font-weight: 500;
+            color: #374151;
+        }
+
+        input {
+            padding: 0.5rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 0.5rem;
+            width: 100px;
+            font-size: 1rem;
+        }
+
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.2s;
+            margin-top: auto;
+        }
+
+        button:hover {
+            background: #2563eb;
+        }
+
+        .dice-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .die {
+            width: 80px;
+            height: 80px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            position: relative;
+            padding: 8px;
+        }
+
+        .die.rolling {
+            animation: roll 1s ease;
+        }
+
+        .dot {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #374151;
+            border-radius: 50%;
+            opacity: 1;
+            transition: opacity 0.3s; /* Slowed down dot transition */
+        }
+
+        /* One */
+        .die[data-value="1"] .dot:nth-child(1) {
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Two */
+        .die[data-value="2"] .dot:nth-child(1) {
+            top: 25%;
+            left: 25%;
+        }
+        .die[data-value="2"] .dot:nth-child(2) {
+            bottom: 25%;
+            right: 25%;
+        }
+
+        /* Three */
+        .die[data-value="3"] .dot:nth-child(1) {
+            top: 25%;
+            left: 25%;
+        }
+        .die[data-value="3"] .dot:nth-child(2) {
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .die[data-value="3"] .dot:nth-child(3) {
+            bottom: 25%;
+            right: 25%;
+        }
+
+        /* Four */
+        .die[data-value="4"] .dot:nth-child(1) {
+            top: 25%;
+            left: 25%;
+        }
+        .die[data-value="4"] .dot:nth-child(2) {
+            top: 25%;
+            right: 25%;
+        }
+        .die[data-value="4"] .dot:nth-child(3) {
+            bottom: 25%;
+            left: 25%;
+        }
+        .die[data-value="4"] .dot:nth-child(4) {
+            bottom: 25%;
+            right: 25%;
+        }
+
+        /* Five */
+        .die[data-value="5"] .dot:nth-child(1) {
+            top: 25%;
+            left: 25%;
+        }
+        .die[data-value="5"] .dot:nth-child(2) {
+            top: 25%;
+            right: 25%;
+        }
+        .die[data-value="5"] .dot:nth-child(3) {
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .die[data-value="5"] .dot:nth-child(4) {
+            bottom: 25%;
+            left: 25%;
+        }
+        .die[data-value="5"] .dot:nth-child(5) {
+            bottom: 25%;
+            right: 25%;
+        }
+
+        /* Six */
+        .die[data-value="6"] .dot:nth-child(1) {
+            top: 25%;
+            left: 25%;
+        }
+        .die[data-value="6"] .dot:nth-child(2) {
+            top: 25%;
+            right: 25%;
+        }
+        .die[data-value="6"] .dot:nth-child(3) {
+            top: 50%;
+            left: 25%;
+            transform: translateY(-50%);
+        }
+        .die[data-value="6"] .dot:nth-child(4) {
+            top: 50%;
+            right: 25%;
+            transform: translateY(-50%);
+        }
+        .die[data-value="6"] .dot:nth-child(5) {
+            bottom: 25%;
+            left: 25%;
+        }
+        .die[data-value="6"] .dot:nth-child(6) {
+            bottom: 25%;
+            right: 25%;
+        }
+
+        @keyframes roll {
+            0% { transform: rotate(0) translateX(0); }
+            15% { transform: rotate(90deg) translateX(20px); }
+            30% { transform: rotate(180deg) translateX(0); }
+            45% { transform: rotate(270deg) translateX(-20px); }
+            60% { transform: rotate(360deg) translateX(0); }
+            75% { transform: rotate(450deg) translateX(20px); }
+            90% { transform: rotate(540deg) translateX(0); }
+            100% { transform: rotate(720deg) translateX(0); }
+        }
+
+        .total {
+            margin-top: 1.5rem;
+            text-align: center;
+            font-size: 1.25rem;
+            font-weight: 500;
+            color: #374151;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="controls">
+            <div class="input-group">
+                <label for="diceCount">Number of Dice</label>
+                <input type="number" id="diceCount" min="1" max="12" value="5">
+            </div>
+            <button onclick="rollDice()">Roll Dice</button>
+        </div>
+        <div class="dice-container" id="diceContainer"></div>
+        <div class="total" id="total"></div>
+    </div>
+
+    <script>
+        function createDie() {
+            const die = document.createElement('div');
+            die.className = 'die';
+            
+            for (let i = 0; i < 6; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'dot';
+                die.appendChild(dot);
+            }
+            return die;
+        }
+
+        function updateDie(die, value) {
+            die.setAttribute('data-value', value);
+            const dots = die.getElementsByClassName('dot');
+            Array.from(dots).forEach((dot, index) => {
+                dot.style.display = index < value ? 'block' : 'none';
+            });
+        }
+
+        function animateDieRoll(die, finalValue) {
+            const duration = 1000; // 1 second duration
+            const steps = 6; // Reduced number of steps for slower changes
+            const stepDuration = duration / steps;
+            let step = 0;
+
+            die.classList.add('rolling');
+
+            const rollInterval = setInterval(() => {
+                if (step < steps - 1) {
+                    const randomValue = Math.floor(Math.random() * 6) + 1;
+                    updateDie(die, randomValue);
+                } else {
+                    updateDie(die, finalValue);
+                    clearInterval(rollInterval);
+                }
+                step++;
+            }, stepDuration);
+
+            setTimeout(() => {
+                die.classList.remove('rolling');
+            }, duration);
+        }
+
+        function rollDice() {
+            const container = document.getElementById('diceContainer');
+            const diceCount = parseInt(document.getElementById('diceCount').value);
+            container.innerHTML = '';
+            let total = 0;
+
+            for (let i = 0; i < diceCount; i++) {
+                const die = createDie();
+                container.appendChild(die);
+                
+                const value = Math.floor(Math.random() * 6) + 1;
+                total += value;
+
+                updateDie(die, Math.floor(Math.random() * 6) + 1);
+                animateDieRoll(die, value);
+            }
+
+            setTimeout(() => {
+                document.getElementById('total').textContent = `Total: ${total}`;
+            }, 1000);
+        }
+
+        // Initial roll
+        rollDice();
+    </script>
+</body>
+</html>

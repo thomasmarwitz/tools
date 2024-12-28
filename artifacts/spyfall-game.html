@@ -157,7 +157,7 @@
             border-color: var(--primary-color);
         }
 
-        #wordCount {
+        .additional {
             color: #64748b;
             font-size: 0.9rem;
         }
@@ -189,7 +189,8 @@
                 {"word": "Another", "hint": "Category"}
             ]</div>
             <input type="file" id="jsonFile" accept=".json">
-            <div id="wordCount">Standardwörter: 45</div>
+            <div id="wordCount" class="additional"></div>
+            <div id="wordCategories" class="additional"></div>
         </div>
         <button onclick="startGame()">Spiel starten</button>
     </div>
@@ -370,6 +371,10 @@
             { word: 'Glühbirne', hint: 'Gegenstände' },
             { word: 'Batterie', hint: 'Gegenstände' },
         ];
+        let categories = new Set(words.map(word => word.hint))
+        document.getElementById('wordCount').textContent = `Standardwörter: ${words.length}`;
+        document.getElementById('wordCategories').textContent = `Kategorien: ${Array.from(categories).join(', ')}`;
+        
         let selectedWord = '';
         let isShowingName = true;
 
@@ -483,8 +488,13 @@
                         const customWords = JSON.parse(e.target.result);
                         if (validateWordList(customWords)) {
                             words = customWords;
+                            categories = new Set(words.map(word => word.hint));
                             document.getElementById('wordCount').textContent = 
                                 `Wörter geladen: ${words.length}`;
+                            document.getElementById('wordCategories').textContent =
+                                `Kategorien: ${Array.from(categories).join(', ')}`;
+                            
+                            
                         }
                     } catch (error) {
                         alert('Ungültiges JSON Format');

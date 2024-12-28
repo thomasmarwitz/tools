@@ -73,11 +73,6 @@
 
     button:hover {
       background-color: #1e429f;
-      transform: translateY(-1px);
-    }
-
-    button:active {
-      transform: translateY(0);
     }
 
     #result {
@@ -88,7 +83,7 @@
       background-color: #f8fafc;
       border-radius: 8px;
       font-size: 1.2rem;
-      color: #1a56db;
+      color: #888;
     }
 
     /* Loading animation */
@@ -101,16 +96,67 @@
     .generating {
       animation: pulse 1.5s infinite;
     }
+
+    .custom-file-input {
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+    }
+
+    .custom-file-input input[type="file"] {
+    position: absolute;
+    left: 0;
+    top: 0;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 1; /* Keeps the input functional */
+    }
+
+    .custom-file-input label {
+    display: block;
+    padding: 12px 24px;
+    background-color: #1a56db;
+    color: white;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative; /* Ensures label is above input */
+    z-index: 2; /* Stacks the label above the input */
+    }
+
+    .custom-file-input label:hover {
+    background-color: #1e429f;
+    }
+
+    #copy-button {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      margin-top: 1.5rem;
+    }
+
+    #copy-button:hover {
+      background-color: #1e429f;
+    }
+
   </style>
   <script src="js/qr-scanner.umd.min.js"></script>
 </head>
 <body>
   <div class="container">
     <h1>QR Code Reader</h1>
-    <div class="input-group">
-      <input id="test" type="file" accept="image/*" onchange="readQRCode(event)" />
+    <div class="custom-file-input">
+        <label for="file-input">Choose QR Code Image</label>
+        <input id="file-input" type="file" accept="image/*" onchange="readQRCode(event)" />
+      </div>
+    <p></p>
+    <div id="result">
+        <span id="text-result">Upload a QR code image to decode.</span>
     </div>
-    <div id="result">Upload a QR code image to decode.</div>
+    <button id="copy-button" onclick="copyToClipboard()" title="Copy">Copy 📋</button>
   </div>
 
   <script>
@@ -119,21 +165,33 @@
       if (!file) return;
 
       const reader = new FileReader();
+      const copyBtn = document.getElementById('copy-button')
+      const resultText = document.getElementById('text-result');
       reader.onload = function () {
         const img = new Image();
         img.src = reader.result;
         img.onload = () => {
           QrScanner.scanImage(img)
             .then(result => {
-              document.getElementById('result').textContent = `QR Code Content: ${result}`;
+              resultText.textContent = result;
+              resultText.style.color = "#1a56db";
+              copyBtn.style.display = 'flex';
+
             })
             .catch(error => {
-              document.getElementById('result').textContent = 'Error: No QR code found.';
-              console.error(error);
+              resultText.textContent = `Error: ${error}`;
+              copyBtn.style.display = 'none';
             });
         };
       };
       reader.readAsDataURL(file);
+    }
+
+    function copyToClipboard() {
+      const resultText = document.getElementById('result').textContent;
+      navigator.clipboard.writeText(resultText).then(() => {
+        alert('Copied to clipboard!');
+      }).catch(err => console.error('Failed to copy text: ', err));
     }
   </script>
 </body>

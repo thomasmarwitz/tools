@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spion Spiel</title>
+    <style>
+        :root {
+            --primary-color: #3b82f6;
+            --background-color: #f8fafc;
+            --card-background: #ffffff;
+            --text-color: #1e293b;
+            --border-radius: 12px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 24px;
+            text-align: center;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.5;
+        }
+        
+        .phase {
+            display: none;
+            background: var(--card-background);
+            padding: 24px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin: 20px 0;
+        }
+        
+        .active {
+            display: block;
+        }
+        
+        #playerInputs {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 24px 0;
+        }
+        
+        button {
+            padding: 12px 24px;
+            margin: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 8px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        button:disabled {
+            background-color: #94a3b8;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        #roleReveal {
+            font-size: 24px;
+            margin: 24px auto;
+            padding: 32px;
+            border-radius: var(--border-radius);
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            background: var(--card-background);
+            box-shadow: var(--shadow);
+            transition: transform 0.2s;
+        }
+
+        #roleReveal:hover {
+            transform: translateY(-2px);
+        }
+        
+        #timer {
+            font-size: 64px;
+            margin: 32px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        input {
+            padding: 12px;
+            margin: 4px;
+            border: 2px solid #e2e8f0;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        h1, h2 {
+            color: var(--text-color);
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        h2 {
+            font-size: 2rem;
+        }
+
+        .setup-container {
+            margin-bottom: 24px;
+        }
+
+        .duration-input {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            margin: 24px 0;
+        }
+
+        small {
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
+    <div id="setupPhase" class="phase active">
+        <h1>Spion Spiel Setup</h1>
+        <div id="playerInputs">
+            <input type="text" placeholder="Spieler 1" required>
+            <input type="text" placeholder="Spieler 2" required>
+            <input type="text" placeholder="Spieler 3" required>
+        </div>
+        <button onclick="addPlayerInput()">Spieler hinzufügen</button>
+        <div class="duration-input">
+            <label for="duration">Spieldauer (Minuten:Sekunden):</label>
+            <input type="text" id="duration" value="4:00">
+        </div>
+        <button onclick="startGame()">Spiel starten</button>
+    </div>
+
+    <div id="rolePhase" class="phase">
+        <h2>Rollenaufdeckung</h2>
+        <div id="roleReveal" onclick="showNextRole()">
+            Tippen um zu starten
+        </div>
+    </div>
+
+    <div id="timerPhase" class="phase">
+        <h2>Spielzeit</h2>
+        <div id="timer"></div>
+        <button id="startTimer" onclick="startTimer()">Timer starten</button>
+        <button onclick="resetGame()">Neues Spiel</button>
+    </div>
+
+    <script>
+        let players = [];
+        let currentPlayerIndex = -1;
+        let spy = -1;
+        let timerInterval;
+        let gameTime = '4:00';
+        
+        // Words organized by category
+        let words = [
+            // Places (Orte)
+            { word: 'Brandenburger Tor', hint: 'Orte' },
+            { word: 'Schloss Neuschwanstein', hint: 'Orte' },
+            { word: 'Kölner Dom', hint: 'Orte' },
+            { word: 'Reichstag', hint: 'Orte' },
+            { word: 'Alexanderplatz', hint: 'Orte' },
+            { word: 'Marienplatz', hint: 'Orte' },
+            { word: 'Frauenkirche Dresden', hint: 'Orte' },
+            { word: 'Europa-Park', hint: 'Orte' },
+            { word: 'Zugspitze', hint: 'Orte' },
+            { word: 'Hamburger Hafen', hint: 'Orte' },
+            { word: 'Englischer Garten', hint: 'Orte' },
+            { word: 'Checkpoint Charlie', hint: 'Orte' },
+            { word: 'Römerberg', hint: 'Orte' },
+            { word: 'Reeperbahn', hint: 'Orte' },
+            { word: 'Loreley', hint: 'Orte' },
+            // Events (Veranstaltungen)
+            { word: 'Oktoberfest', hint: 'Veranstaltungen' },
+            { word: 'Karneval in Köln', hint: 'Veranstaltungen' },
+            { word: 'Berlinale', hint: 'Veranstaltungen' },
+            { word: 'Christkindlmarkt', hint: 'Veranstaltungen' },
+            { word: 'Bayreuth Festspiele', hint: 'Veranstaltungen' },
+            { word: 'Cannstatter Wasen', hint: 'Veranstaltungen' },
+            { word: 'Frankfurter Buchmesse', hint: 'Veranstaltungen' },
+            { word: 'Kieler Woche', hint: 'Veranstaltungen' },
+            { word: 'Love Parade', hint: 'Veranstaltungen' },
+            { word: 'Fasching', hint: 'Veranstaltungen' },
+            { word: 'Rhein in Flammen', hint: 'Veranstaltungen' },
+            { word: 'Documenta', hint: 'Veranstaltungen' },
+            { word: 'Münchner Frühlingsfest', hint: 'Veranstaltungen' },
+            { word: 'Hamburger DOM', hint: 'Veranstaltungen' },
+            { word: 'Weinfest', hint: 'Veranstaltungen' },
+            // Food (Essen)
+            { word: 'Bratwurst', hint: 'Essen' },
+            { word: 'Schnitzel', hint: 'Essen' },
+            { word: 'Spätzle', hint: 'Essen' },
+            { word: 'Currywurst', hint: 'Essen' },
+            { word: 'Döner', hint: 'Essen' },
+            { word: 'Brezel', hint: 'Essen' },
+            { word: 'Sauerkraut', hint: 'Essen' },
+            { word: 'Lebkuchen', hint: 'Essen' },
+            { word: 'Schwarzwälder Kirschtorte', hint: 'Essen' },
+            { word: 'Kartoffelsalat', hint: 'Essen' },
+            { word: 'Eisbein', hint: 'Essen' },
+            { word: 'Maultaschen', hint: 'Essen' },
+            { word: 'Berliner Pfannkuchen', hint: 'Essen' },
+            { word: 'Weißwurst', hint: 'Essen' },
+            { word: 'Apfelstrudel', hint: 'Essen' }
+        ];
+        let selectedWord = '';
+        let isShowingName = true;
+
+        function addPlayerInput() {
+            const inputs = document.getElementById('playerInputs');
+            const newInput = document.createElement('input');
+            newInput.type = 'text';
+            newInput.placeholder = `Spieler ${inputs.children.length + 1}`;
+            inputs.appendChild(newInput);
+        }
+
+        function startGame() {
+            const inputs = document.querySelectorAll('#playerInputs input');
+            players = Array.from(inputs)
+                .map(input => input.value.trim())
+                .filter(name => name !== '');
+
+            if (players.length < 3) {
+                alert('Bitte mindestens 3 Spieler hinzufügen');
+                return;
+            }
+
+            // Store the game time
+            gameTime = document.getElementById('duration').value || '4:00';
+            document.getElementById('timer').textContent = gameTime;
+
+            // Set up the game
+            spy = Math.floor(Math.random() * players.length);
+            selectedWord = words[Math.floor(Math.random() * words.length)];
+            currentPlayerIndex = -1;
+            isShowingName = true;
+
+            // Switch to role phase
+            document.getElementById('setupPhase').classList.remove('active');
+            document.getElementById('rolePhase').classList.add('active');
+            showNextRole();
+        }
+
+        function showNextRole() {
+            const roleReveal = document.getElementById('roleReveal');
+            
+            if (isShowingName) {
+                currentPlayerIndex++;
+                if (currentPlayerIndex >= players.length) {
+                    // Move to timer phase
+                    document.getElementById('rolePhase').classList.remove('active');
+                    document.getElementById('timerPhase').classList.add('active');
+                    return;
+                }
+                roleReveal.innerHTML = `<h3>${players[currentPlayerIndex]}</h3><p>Tippen um deine Rolle zu sehen</p>`;
+                isShowingName = false;
+            } else {
+                if (currentPlayerIndex === spy) {
+                    roleReveal.innerHTML = `
+                        <h3>Du bist der SPION!</h3>
+                        <p>Hinweis: ${selectedWord.hint}</p>
+                        <p><small>Tippen um fortzufahren</small></p>
+                    `;
+                } else {
+                    roleReveal.innerHTML = `
+                        <h3>Du bist KEIN Spion</h3>
+                        <p>Wort: ${selectedWord.word}</p>
+                        <p><small>Tippen um fortzufahren</small></p>
+                    `;
+                }
+                isShowingName = true;
+            }
+        }
+
+        function startTimer() {
+            const timerDisplay = document.getElementById('timer');
+            const startButton = document.getElementById('startTimer');
+            startButton.disabled = true;
+
+            let timeStr = gameTime;
+            let [minutes, seconds] = timeStr.split(':').map(Number);
+            let totalSeconds = minutes * 60 + seconds;
+
+            timerInterval = setInterval(() => {
+                if (totalSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    timerDisplay.textContent = '0:00';
+                    alert('Zeit ist um!');
+                    return;
+                }
+
+                totalSeconds--;
+                const displayMinutes = Math.floor(totalSeconds / 60);
+                const displaySeconds = totalSeconds % 60;
+                timerDisplay.textContent = `${displayMinutes}:${displaySeconds.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        function resetGame() {
+            clearInterval(timerInterval);
+            currentPlayerIndex = -1;
+            isShowingName = true;
+            document.getElementById('timerPhase').classList.remove('active');
+            document.getElementById('setupPhase').classList.add('active');
+            document.getElementById('startTimer').disabled = false;
+            document.getElementById('timer').textContent = gameTime;
+        }
+    </script>
+</body>
+</html>

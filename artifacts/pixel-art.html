@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎨</text></svg>">
+    <title>Pixel Art Maker</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: #f0f0f0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: start;
+        }
+
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+        }
+
+        h1 {
+            color: #2563eb;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .tools {
+            margin-bottom: 20px;
+        }
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .color-button {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: 2px solid #e5e7eb;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .color-button:hover {
+            transform: scale(1.1);
+        }
+
+        .color-button.selected {
+            border-color: #2563eb;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .tool-button {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+            background: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .tool-button.active {
+            background: #2563eb;
+            color: white;
+            border-color: #2563eb;
+        }
+
+        .pixel-grid {
+            display: grid;
+            gap: 1px;
+            background: #e5e7eb;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        .pixel {
+            aspect-ratio: 1;
+            background: white;
+            cursor: pointer;
+        }
+
+        .pixel:hover {
+            opacity: 0.9;
+        }
+
+        canvas {
+            display: none;
+        }
+
+        @media (max-width: 600px) {
+            .color-grid {
+                grid-template-columns: repeat(6, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Pixel Art Maker</h1>
+        
+        <div class="tools">
+            <div class="color-grid" id="colorGrid"></div>
+            
+            <div class="button-group">
+                <button class="tool-button active" id="drawButton">
+                    ◻️ Draw
+                </button>
+                <button class="tool-button" id="eraseButton">
+                    ⌫ Erase
+                </button>
+                <button class="tool-button" id="saveButton">
+                    ⬇️ Save
+                </button>
+            </div>
+        </div>
+        
+        <div class="pixel-grid" id="pixelGrid"></div>
+        <canvas id="saveCanvas"></canvas>
+    </div>
+
+    <script>
+        const colors = [
+            // Blues
+            '#3b82f6', '#1d4ed8', '#1e40af',
+            // Reds
+            '#ef4444', '#dc2626', '#b91c1c',
+            // Greens
+            '#22c55e', '#16a34a', '#15803d',
+            // Yellows
+            '#fbbf24', '#f59e0b', '#d97706',
+            // Purples
+            '#a855f7', '#7c3aed', '#6d28d9',
+            // Pinks
+            '#ec4899', '#db2777', '#be185d',
+            // Neutrals
+            '#000000', '#4b5563', '#9ca3af', '#e5e7eb', '#ffffff'
+        ];
+
+        const GRID_SIZE = 16;
+        let currentColor = '#3b82f6';
+        let isDrawing = false;
+        let tool = 'draw';
+
+        // Initialize color grid
+        const colorGrid = document.getElementById('colorGrid');
+        colors.forEach(color => {
+            const button = document.createElement('button');
+            button.className = 'color-button';
+            button.style.backgroundColor = color;
+            if (color === currentColor) button.classList.add('selected');
+            button.addEventListener('click', () => {
+                document.querySelectorAll('.color-button').forEach(btn => btn.classList.remove('selected'));
+                button.classList.add('selected');
+                currentColor = color;
+                tool = 'draw';
+                updateToolButtons();
+            });
+            colorGrid.appendChild(button);
+        });
+
+        // Initialize pixel grid
+        const pixelGrid = document.getElementById('pixelGrid');
+        pixelGrid.style.gridTemplateColumns = `repeat(${GRID_SIZE}, 1fr)`;
+        
+        for (let i = 0; i < GRID_SIZE * GRID_SIZE; i++) {
+            const pixel = document.createElement('div');
+            pixel.className = 'pixel';
+            pixel.style.backgroundColor = '#ffffff';
+            pixelGrid.appendChild(pixel);
+        }
+
+        // Drawing functionality
+        function handleDraw(pixel) {
+            pixel.style.backgroundColor = tool === 'draw' ? currentColor : '#ffffff';
+        }
+
+        // Mouse events
+        pixelGrid.addEventListener('mousedown', (e) => {
+            isDrawing = true;
+            if (e.target.classList.contains('pixel')) {
+                handleDraw(e.target);
+            }
+        });
+
+        pixelGrid.addEventListener('mousemove', (e) => {
+            if (isDrawing && e.target.classList.contains('pixel')) {
+                handleDraw(e.target);
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDrawing = false;
+        });
+
+        // Touch events
+        pixelGrid.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            isDrawing = true;
+            const touch = e.touches[0];
+            const pixel = document.elementFromPoint(touch.clientX, touch.clientY);
+            if (pixel?.classList.contains('pixel')) {
+                handleDraw(pixel);
+            }
+        });
+
+        pixelGrid.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (isDrawing) {
+                const touch = e.touches[0];
+                const pixel = document.elementFromPoint(touch.clientX, touch.clientY);
+                if (pixel?.classList.contains('pixel')) {
+                    handleDraw(pixel);
+                }
+            }
+        });
+
+        pixelGrid.addEventListener('touchend', () => {
+            isDrawing = false;
+        });
+
+        // Tool buttons
+        const drawButton = document.getElementById('drawButton');
+        const eraseButton = document.getElementById('eraseButton');
+        
+        function updateToolButtons() {
+            drawButton.classList.toggle('active', tool === 'draw');
+            eraseButton.classList.toggle('active', tool === 'erase');
+        }
+
+        drawButton.addEventListener('click', () => {
+            tool = 'draw';
+            updateToolButtons();
+        });
+
+        eraseButton.addEventListener('click', () => {
+            tool = 'erase';
+            updateToolButtons();
+        });
+
+        // Save functionality
+        const saveButton = document.getElementById('saveButton');
+        const canvas = document.getElementById('saveCanvas');
+
+        saveButton.addEventListener('click', () => {
+            const ctx = canvas.getContext('2d');
+            const pixelSize = 20;
+            
+            canvas.width = GRID_SIZE * pixelSize;
+            canvas.height = GRID_SIZE * pixelSize;
+            
+            // Draw pixels
+            const pixels = document.querySelectorAll('.pixel');
+            pixels.forEach((pixel, index) => {
+                const row = Math.floor(index / GRID_SIZE);
+                const col = index % GRID_SIZE;
+                
+                ctx.fillStyle = pixel.style.backgroundColor;
+                ctx.fillRect(col * pixelSize, row * pixelSize, pixelSize, pixelSize);
+                
+                // Add grid lines
+                ctx.strokeStyle = '#e5e7eb';
+                ctx.strokeRect(col * pixelSize, row * pixelSize, pixelSize, pixelSize);
+            });
+            
+            try {
+                const dataUrl = canvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                link.href = dataUrl;
+                link.download = 'pixel-art.png';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } catch (error) {
+                console.error('Error saving image:', error);
+                alert('There was an error saving your image. Please try again.');
+            }
+        });
+    </script>
+</body>
+</html>

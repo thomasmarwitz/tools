@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🕵️‍♂️</text></svg>">
     <title>Spion Spiel</title>
     <style>
         :root {
@@ -139,11 +140,38 @@
         small {
             color: #64748b;
         }
+
+        .file-upload {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            margin: 24px 0;
+            padding: 20px;
+            border: 2px dashed #e2e8f0;
+            border-radius: var(--border-radius);
+            transition: border-color 0.2s;
+        }
+
+        .file-upload:hover {
+            border-color: var(--primary-color);
+        }
+
+        #wordCount {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+        #file-format {
+            color: #64748b;
+            font-size: 0.9rem;
+            font-family: monospace;
+        }
+
     </style>
 </head>
 <body>
     <div id="setupPhase" class="phase active">
-        <h1>Spion Spiel Setup</h1>
+        <h1>Spion Spiel</h1>
         <div id="playerInputs">
             <input type="text" placeholder="Spieler 1" required>
             <input type="text" placeholder="Spieler 2" required>
@@ -153,6 +181,15 @@
         <div class="duration-input">
             <label for="duration">Spieldauer (Minuten:Sekunden):</label>
             <input type="text" id="duration" value="4:00">
+        </div>
+        <div class="file-upload">
+            <label for="jsonFile">Optional: Eigene Wörter hochladen (JSON)</label>
+            <div id="file-format">[
+                {"word": "Example", "hint": "Category"},<br>
+                {"word": "Another", "hint": "Category"}
+            ]</div>
+            <input type="file" id="jsonFile" accept=".json">
+            <div id="wordCount">Standardwörter: 45</div>
         </div>
         <button onclick="startGame()">Spiel starten</button>
     </div>
@@ -180,38 +217,68 @@
         
         // Words organized by category
         let words = [
-            // Places (Orte)
+            // Places (Orte) & international landmarks
             { word: 'Brandenburger Tor', hint: 'Orte' },
-            { word: 'Schloss Neuschwanstein', hint: 'Orte' },
             { word: 'Kölner Dom', hint: 'Orte' },
             { word: 'Reichstag', hint: 'Orte' },
             { word: 'Alexanderplatz', hint: 'Orte' },
-            { word: 'Marienplatz', hint: 'Orte' },
-            { word: 'Frauenkirche Dresden', hint: 'Orte' },
             { word: 'Europa-Park', hint: 'Orte' },
             { word: 'Zugspitze', hint: 'Orte' },
-            { word: 'Hamburger Hafen', hint: 'Orte' },
-            { word: 'Englischer Garten', hint: 'Orte' },
-            { word: 'Checkpoint Charlie', hint: 'Orte' },
-            { word: 'Römerberg', hint: 'Orte' },
             { word: 'Reeperbahn', hint: 'Orte' },
-            { word: 'Loreley', hint: 'Orte' },
+            { word: 'Strand', hint: 'Orte' },
+            { word: 'Schwarzwald', hint: 'Orte' },
+            { word: 'Biergarten', hint: 'Orte' },
+            { word: 'Kindergarten', hint: 'Orte' },
+            { word: 'Supermarkt', hint: 'Orte' },
+            { word: 'Flughafen', hint: 'Orte' },
+            { word: 'Krankenhaus', hint: 'Orte' },
+            { word: 'Bibliothek', hint: 'Orte' },
+            { word: 'Apotheke', hint: 'Orte' },
+            { word: 'Rathaus', hint: 'Orte' },
+            { word: 'Wochenmarkt (Markt)', hint: 'Veranstaltungen' },
+            { word: 'Kloster', hint: 'Orte' },
+            { word: 'Metzgerei', hint: 'Orte' },
+            { word: 'Eiscafé', hint: 'Orte' },
+            { word: 'Schrebergarten', hint: 'Orte' },
+            { word: 'Waschanlage', hint: 'Orte' },
+            { word: 'Tankstelle', hint: 'Orte' },
+            { word: 'Skigebiet', hint: 'Orte' },
+            { word: 'Tierpark', hint: 'Orte' },
+            { word: 'Bahnhof', hint: 'Orte' },
+            { word: 'Volksfest', hint: 'Orte' },
+            { word: 'Spielplatz', hint: 'Orte' },
+            { word: 'Schwimmbad', hint: 'Orte' },
+            { word: 'Alpen', hint: 'Orte' },
+            { word: 'Bäckerei', hint: 'Orte' },
+            { word: 'Museum', hint: 'Orte' },
+            { word: 'Theater', hint: 'Orte' },
+            { word: 'Universität', hint: 'Orte' },
+            { word: 'Weihnachtsmarkt', hint: 'Orte' },
             // Events (Veranstaltungen)
             { word: 'Oktoberfest', hint: 'Veranstaltungen' },
-            { word: 'Karneval in Köln', hint: 'Veranstaltungen' },
+            { word: 'Karneval', hint: 'Veranstaltungen' },
             { word: 'Berlinale', hint: 'Veranstaltungen' },
-            { word: 'Christkindlmarkt', hint: 'Veranstaltungen' },
-            { word: 'Bayreuth Festspiele', hint: 'Veranstaltungen' },
-            { word: 'Cannstatter Wasen', hint: 'Veranstaltungen' },
-            { word: 'Frankfurter Buchmesse', hint: 'Veranstaltungen' },
-            { word: 'Kieler Woche', hint: 'Veranstaltungen' },
-            { word: 'Love Parade', hint: 'Veranstaltungen' },
+            { word: 'Weihnachten', hint: 'Veranstaltungen' },
+            { word: 'Hochzeit', hint: 'Veranstaltungen' },
+            { word: 'Geburtstag', hint: 'Veranstaltungen' },
+            { word: 'Silvester', hint: 'Veranstaltungen' },
+            { word: 'Ostern', hint: 'Veranstaltungen' },
+            { word: 'Konzert', hint: 'Veranstaltungen' },
             { word: 'Fasching', hint: 'Veranstaltungen' },
-            { word: 'Rhein in Flammen', hint: 'Veranstaltungen' },
-            { word: 'Documenta', hint: 'Veranstaltungen' },
-            { word: 'Münchner Frühlingsfest', hint: 'Veranstaltungen' },
-            { word: 'Hamburger DOM', hint: 'Veranstaltungen' },
-            { word: 'Weinfest', hint: 'Veranstaltungen' },
+            { word: 'Messe', hint: 'Veranstaltungen' },
+            { word: 'Flohmarkt', hint: 'Veranstaltungen' },
+            { word: 'Oper', hint: 'Veranstaltungen' },
+            { word: 'Filmfestival', hint: 'Veranstaltungen' },
+            { word: 'Kirmes / Jahrmarkt', hint: 'Veranstaltungen' },
+            { word: 'Vatertag', hint: 'Veranstaltungen' },
+            { word: 'Muttertag', hint: 'Veranstaltungen' },
+            { word: 'Abschlussball', hint: 'Veranstaltungen' },
+            { word: 'Firmenfeier', hint: 'Veranstaltungen' },
+            { word: 'Kindergeburtstag', hint: 'Veranstaltungen' },
+            { word: 'Klassentreffen', hint: 'Veranstaltungen' },
+            { word: 'Halloweenparty', hint: 'Veranstaltungen' },
+            { word: 'Einweihungsparty', hint: 'Veranstaltungen' },
+            { word: 'Vorstellungsgespräch', hint: 'Veranstaltungen' },
             // Food (Essen)
             { word: 'Bratwurst', hint: 'Essen' },
             { word: 'Schnitzel', hint: 'Essen' },
@@ -223,11 +290,85 @@
             { word: 'Lebkuchen', hint: 'Essen' },
             { word: 'Schwarzwälder Kirschtorte', hint: 'Essen' },
             { word: 'Kartoffelsalat', hint: 'Essen' },
-            { word: 'Eisbein', hint: 'Essen' },
             { word: 'Maultaschen', hint: 'Essen' },
-            { word: 'Berliner Pfannkuchen', hint: 'Essen' },
-            { word: 'Weißwurst', hint: 'Essen' },
-            { word: 'Apfelstrudel', hint: 'Essen' }
+            { word: 'Apfelstrudel', hint: 'Essen' },
+            { word: 'Kartoffelsalat', hint: 'Essen' },
+            { word: 'Flammkuchen', hint: 'Essen' },
+            { word: 'Knödel', hint: 'Essen' },
+            { word: 'Zwiebelkuchen', hint: 'Essen' },
+            { word: 'Pumpernickel', hint: 'Essen' },
+            { word: 'Eintopf', hint: 'Essen' },
+            { word: 'Schupfnudeln', hint: 'Essen' },
+            { word: 'Bienenstich', hint: 'Essen' },
+            { word: 'Pfannkuchen', hint: 'Essen' },
+            { word: 'Raclette', hint: 'Essen' },
+            { word: 'Kaiserschmarrn', hint: 'Essen' },
+            { word: 'Gulasch', hint: 'Essen' },
+            // Professions (Berufe)
+            { word: 'Arzt', hint: 'Berufe' },
+            { word: 'Lehrer', hint: 'Berufe' },
+            { word: 'Polizist', hint: 'Berufe' },
+            { word: 'Koch', hint: 'Berufe' },
+            { word: 'Friseur', hint: 'Berufe' },
+            { word: 'Bäcker', hint: 'Berufe' },
+            { word: 'Maler', hint: 'Berufe' },
+            { word: 'Ingenieur', hint: 'Berufe' },
+            { word: 'Verkäufer', hint: 'Berufe' },
+            { word: 'Kellner', hint: 'Berufe' },
+            { word: 'Mechaniker', hint: 'Berufe' },
+            { word: 'Architekt', hint: 'Berufe' },
+            { word: 'Musiker', hint: 'Berufe' },
+            { word: 'Schneider', hint: 'Berufe' },
+            { word: 'Schuster', hint: 'Berufe' },
+            { word: 'Tischler', hint: 'Berufe' },
+            { word: 'Krankenschwester', hint: 'Berufe' },
+            { word: 'Feuerwehrmann', hint: 'Berufe' },
+            { word: 'Anwalt', hint: 'Berufe' },
+            { word: 'Journalist', hint: 'Berufe' },
+            { word: 'Entwickler', hint: 'Berufe' },
+            { word: 'Künstler', hint: 'Berufe' },
+            { word: 'Fotograf', hint: 'Berufe' },
+            { word: 'Psychologe', hint: 'Berufe' },
+            { word: 'Astronaut', hint: 'Berufe' },
+            { word: 'Bauarbeiter', hint: 'Berufe' },
+            { word: 'Gärtner', hint: 'Berufe' },
+            { word: 'Tierarzt', hint: 'Berufe' },
+            { word: 'Pilot', hint: 'Berufe' },
+            { word: 'Schornsteinfeger', hint: 'Berufe' },
+            { word: 'Zahnarzt', hint: 'Berufe' },
+            { word: 'Physiotherapeut', hint: 'Berufe' },
+            { word: 'Konditor', hint: 'Berufe' },
+            { word: 'Schauspieler', hint: 'Berufe' },
+            { word: 'Sänger', hint: 'Berufe' },
+            { word: 'Tänzer', hint: 'Berufe' },
+            // Objects (Gegenstände)
+            { word: 'Fahrrad', hint: 'Gegenstände' },
+            { word: 'Auto', hint: 'Gegenstände' },
+            { word: 'Kamera', hint: 'Gegenstände' },
+            { word: 'Laptop', hint: 'Gegenstände' },
+            { word: 'Smartphone', hint: 'Gegenstände' },
+            { word: 'Fernseher', hint: 'Gegenstände' },
+            { word: 'Kühlschrank', hint: 'Gegenstände' },
+            { word: 'Mikrowelle', hint: 'Gegenstände' },
+            { word: 'Staubsauger', hint: 'Gegenstände' },
+            { word: 'Kaffeemaschine', hint: 'Gegenstände' },
+            { word: 'Toaster', hint: 'Gegenstände' },
+            { word: 'Waschmaschine', hint: 'Gegenstände' },
+            { word: 'Geschirrspüler', hint: 'Gegenstände' },
+            { word: 'Bügeleisen', hint: 'Gegenstände' },
+            { word: 'Bohrmaschine', hint: 'Gegenstände' },
+            { word: 'Schraubendreher', hint: 'Gegenstände' },
+            { word: 'Hammer', hint: 'Gegenstände' },
+            { word: 'Schere', hint: 'Gegenstände' },
+            { word: 'Kochtopf', hint: 'Gegenstände' },
+            { word: 'Pfanne', hint: 'Gegenstände' },
+            { word: 'Messer', hint: 'Gegenstände' },
+            { word: 'Gabel', hint: 'Gegenstände' },
+            { word: 'Löffel', hint: 'Gegenstände' },
+            { word: 'Tasse', hint: 'Gegenstände' },
+            { word: 'Teller', hint: 'Gegenstände' },
+            { word: 'Glühbirne', hint: 'Gegenstände' },
+            { word: 'Batterie', hint: 'Gegenstände' },
         ];
         let selectedWord = '';
         let isShowingName = true;
@@ -330,6 +471,49 @@
             document.getElementById('setupPhase').classList.add('active');
             document.getElementById('startTimer').disabled = false;
             document.getElementById('timer').textContent = gameTime;
+        }
+
+        // Add file handling
+        document.getElementById('jsonFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const customWords = JSON.parse(e.target.result);
+                        if (validateWordList(customWords)) {
+                            words = customWords;
+                            document.getElementById('wordCount').textContent = 
+                                `Wörter geladen: ${words.length}`;
+                        }
+                    } catch (error) {
+                        alert('Ungültiges JSON Format');
+                    }
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        function validateWordList(list) {
+            if (!Array.isArray(list) || list.length === 0) {
+                alert('JSON muss eine Liste von Wörtern sein');
+                return false;
+            }
+            
+            const isValid = list.every(item => 
+                typeof item === 'object' && 
+                'word' in item && 
+                'hint' in item &&
+                typeof item.word === 'string' &&
+                typeof item.hint === 'string'
+            );
+
+            if (!isValid) {
+                alert('Jedes Element muss "word" und "hint" enthalten');
+                return false;
+            }
+
+            return true;
         }
     </script>
 </body>

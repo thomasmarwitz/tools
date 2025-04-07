@@ -29,7 +29,6 @@ A simple dice rolling simulator supporting multiple 6-sided dice.
 Create pixel art with customizable grid size and color palette.
 
 ## Features
-- No external dependencies
+- No external dependencies (all external javascript libraries were downloaded and included in the project)
 - Offline capable
-- Mobile-friendly interface
-- Clean, minimalist design
+- No ads
